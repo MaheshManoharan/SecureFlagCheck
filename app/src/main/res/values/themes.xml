@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SecureFlagCheck" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Below API 33 the TaskDescription background can't be set from code, so the
+             Recent Apps placeholder for a secure window takes this color. Compose
+             screens draw their own background on top, so the UI is unaffected. -->
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
