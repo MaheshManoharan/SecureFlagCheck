@@ -20,6 +20,8 @@ import androidx.annotation.MainThread
  * Android does not screenshot a secure window for Recents; it draws a placeholder
  * filled with the task's background color, which defaults to the theme's
  * windowBackground (white in a light theme). That color is forced to black here.
+ * The placeholder is a flat color only: it cannot show an icon, and the snapshot is
+ * taken before the app is notified it is leaving, so an in-app cover can't replace it.
  */
 class SecureWindowController(private val activity: Activity) {
 
