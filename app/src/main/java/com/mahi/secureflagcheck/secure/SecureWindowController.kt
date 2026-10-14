@@ -1,11 +1,16 @@
 package com.mahi.secureflagcheck.secure
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.graphics.Color
 import android.os.Build
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 
 /**
  * Toggles FLAG_SECURE on the activity window based on how many secure screens
@@ -22,10 +27,49 @@ import androidx.annotation.MainThread
  * windowBackground (white in a light theme). That color is forced to black here.
  * The placeholder is a flat color only: it cannot show an icon, and the snapshot is
  * taken before the app is notified it is leaving, so an in-app cover can't replace it.
+ *
+ * Privacy overlay: when a secure screen is shown and the app is being minimized
+ * (Home / Recents / another app on top), [isPrivacyOverlayVisible] turns true so the
+ * UI is covered by [PrivacyOverlay] until the activity is the top resumed one again.
+ * On API 29+ this follows onTopResumedActivityChanged, which fires before onPause and
+ * also when another app takes focus in multi-window; older versions use onPause/onResume.
  */
-class SecureWindowController(private val activity: Activity) {
+class SecureWindowController(private val activity: ComponentActivity) : DefaultLifecycleObserver {
 
     private var secureCount = 0
+
+    /** True while the privacy overlay must cover the UI. */
+    var isPrivacyOverlayVisible by mutableStateOf(false)
+        private set
+
+    init {
+        activity.lifecycle.addObserver(this)
+    }
+
+    /** Home / Recents pressed: arrives before onPause, so the cover is drawn sooner. */
+    @MainThread
+    fun onUserLeaveHint() {
+        if (secureCount > 0) isPrivacyOverlayVisible = true
+    }
+
+    @MainThread
+    fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        if (isTopResumedActivity) {
+            isPrivacyOverlayVisible = false
+        } else if (secureCount > 0) {
+            isPrivacyOverlayVisible = true
+        }
+    }
+
+    override fun onPause(owner: LifecycleOwner) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && secureCount > 0) {
+            isPrivacyOverlayVisible = true
+        }
+    }
+
+    override fun onResume(owner: LifecycleOwner) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) isPrivacyOverlayVisible = false
+    }
 
     @MainThread
     fun acquire() {
