@@ -49,32 +49,59 @@ class SecureWindowController(private val activity: ComponentActivity) : DefaultL
     /** Home / Recents pressed: arrives before onPause, so the cover is drawn sooner. */
     @MainThread
     fun onUserLeaveHint() {
-        if (secureCount > 0) isPrivacyOverlayVisible = true
+        if (secureCount > 0) cover()
     }
 
     @MainThread
     fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
-        if (isTopResumedActivity) {
-            isPrivacyOverlayVisible = false
-        } else if (secureCount > 0) {
-            isPrivacyOverlayVisible = true
-        }
+        if (isTopResumedActivity) uncover() else if (secureCount > 0) cover()
     }
 
     override fun onPause(owner: LifecycleOwner) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && secureCount > 0) {
-            isPrivacyOverlayVisible = true
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && secureCount > 0) cover()
     }
 
     override fun onResume(owner: LifecycleOwner) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) isPrivacyOverlayVisible = false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) uncover()
+    }
+
+    /**
+     * Shows the overlay, then — once that frame has reached the screen — lifts FLAG_SECURE
+     * so a Recents snapshot taken from now on shows the overlay instead of the flat
+     * placeholder. Real content is never visible while the flag is off.
+     */
+    private fun cover() {
+        if (isPrivacyOverlayVisible) return
+        isPrivacyOverlayVisible = true
+        afterOverlayDrawn {
+            if (isPrivacyOverlayVisible && secureCount > 0) applySecure(false)
+        }
+    }
+
+    /** Re-secures the window before the real content is revealed again. */
+    private fun uncover() {
+        if (secureCount > 0) applySecure(true)
+        isPrivacyOverlayVisible = false
+    }
+
+    private fun afterOverlayDrawn(action: () -> Unit) {
+        val decor = activity.window.decorView
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // The overlay recomposes on the next frame; act once a later frame is committed.
+            decor.postOnAnimation {
+                decor.viewTreeObserver.registerFrameCommitCallback { decor.post(action) }
+                decor.invalidate()
+            }
+        } else {
+            decor.postOnAnimation { decor.postOnAnimation { decor.post(action) } }
+        }
     }
 
     @MainThread
     fun acquire() {
         secureCount++
-        if (secureCount == 1) applySecure(true)
+        // While covered the flag stays off; uncover() re-applies it.
+        if (secureCount == 1 && !isPrivacyOverlayVisible) applySecure(true)
     }
 
     @MainThread
