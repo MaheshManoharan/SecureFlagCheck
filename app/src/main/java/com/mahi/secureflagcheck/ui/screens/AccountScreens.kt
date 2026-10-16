@@ -33,7 +33,7 @@ import com.mahi.secureflagcheck.ui.components.ScreenColumn
 @Composable
 fun OrderDetailsScreen(orderId: Int, onBack: () -> Unit) {
     val order = FakeData.order(orderId)
-    AppScaffold(title = "Order #${order.id}", onBack = onBack) { padding ->
+    AppScaffold(title = "Order #${order.id}", onBack = onBack, secure = true) { padding ->
         ScreenColumn(padding) {
             LabelValue("Date", order.date)
             LabelValue("Status", order.status)
@@ -70,7 +70,7 @@ fun OrderHistoryScreen(onBack: () -> Unit, onOrder: (Int) -> Unit) {
 
 @Composable
 fun MyAccountScreen(onBack: () -> Unit, onOrders: () -> Unit, onSettings: () -> Unit) {
-    AppScaffold(title = "My account", onBack = onBack) { padding ->
+    AppScaffold(title = "My account", onBack = onBack, secure = true) { padding ->
         ScreenColumn(padding) {
             LabelValue("Name", "Mahi Sharma")
             LabelValue("Email", "mahi@example.com")

@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mahi.secureflagcheck.R
@@ -17,14 +18,17 @@ import com.mahi.secureflagcheck.R
 @Composable
 fun PrivacyOverlay(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface),
+        modifier = modifier.fillMaxSize().background(
+            color = Color(0xff000000)
+           // MaterialTheme.colorScheme.surface
+        ),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_visibility_off),
-            contentDescription = "Content hidden",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(96.dp),
-        )
+//        Icon(
+//            painter = painterResource(R.drawable.ic_visibility_off),
+//            contentDescription = "Content hidden",
+//            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+//            modifier = Modifier.size(96.dp),
+//        )
     }
 }

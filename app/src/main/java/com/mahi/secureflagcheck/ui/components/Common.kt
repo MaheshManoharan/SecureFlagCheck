@@ -21,18 +21,19 @@ import androidx.compose.ui.unit.dp
 import com.mahi.secureflagcheck.secure.SecureScreen
 
 /**
- * Standard screen frame. Every screen goes through here, so every screen is
- * wrapped in [SecureScreen] (FLAG_SECURE: no screenshots, black recording,
- * black Recent Apps thumbnail).
+ * Standard screen frame. Pass [secure] = true for sensitive screens to wrap them in
+ * [SecureScreen] (FLAG_SECURE: no screenshots, black recording, black Recent Apps
+ * thumbnail, privacy overlay when minimized). Other screens are left unprotected.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(
     title: String,
     onBack: (() -> Unit)? = null,
+    secure: Boolean = false,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    SecureScreen {
+    val scaffold: @Composable () -> Unit = {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
@@ -46,6 +47,7 @@ fun AppScaffold(
             content = content,
         )
     }
+    if (secure) SecureScreen(scaffold) else scaffold()
 }
 
 @Composable

@@ -113,7 +113,7 @@ fun CheckoutScreen(onBack: () -> Unit, onPlaceOrder: () -> Unit) {
     var cvv by rememberSaveable { mutableStateOf("") }
     val total = FakeData.cart.sumOf { (p, q) -> p.price * q }
 
-    AppScaffold(title = "Checkout", onBack = onBack) { padding ->
+    AppScaffold(title = "Checkout", onBack = onBack, secure = true) { padding ->
         ScreenColumn(padding) {
             LabelValue("Amount payable", total.inr(), bold = true)
             OutlinedTextField(
